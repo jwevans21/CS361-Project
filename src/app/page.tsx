@@ -36,6 +36,7 @@ function themeFromName(name: ThemeName): DefaultTheme {
 }
 
 export default function Home() {
+   'use client';
    const [showSettings, setShowSettings] = useState(false);
 
    // Begin Saved State
