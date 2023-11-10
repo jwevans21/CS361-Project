@@ -36,9 +36,13 @@ function themeFromName(name: ThemeName): DefaultTheme {
 }
 
 export default function Home() {
-   'use client';
+   ('use client');
    const [showSettings, setShowSettings] = useState(false);
 
+   if (typeof window === 'undefined') {
+      return <></>;
+   }
+   
    // Begin Saved State
    const [unitSystem, setUnitSystem] = useLocalStorage<UnitSystem>(
       'unitSystem',

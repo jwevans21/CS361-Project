@@ -14,7 +14,7 @@ export default function RootLayout({
 }) {
    return (
       <html lang='en'>
-         <body>{typeof window === 'undefined' ? null : children}</body>
+         <body>{children}</body>
       </html>
    );
 }
