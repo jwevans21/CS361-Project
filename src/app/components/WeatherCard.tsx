@@ -1,11 +1,13 @@
+import { useState, useEffect } from 'react';
+
 import { faCloud } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { Card, Pane, Heading, Text } from 'evergreen-ui';
 
-import type {Location, UnitSystem} from "../types.d.ts"
+import type { Location, UnitSystem } from '../types.d.ts';
 
-function HourlyWeather() {
+function HourlyWeather({ forecast }: { forecast: any }) {
    return (
       <Card
          elevation={1}
@@ -17,25 +19,61 @@ function HourlyWeather() {
          justifyContent='space-between'
       >
          <Heading is='h4' size={400}>
-            HH:MM
+            {(new Date(forecast.startTime)).toLocaleTimeString()}
          </Heading>
          <Pane margin={20}>
             <FontAwesomeIcon icon={faCloud} />
          </Pane>
          <Pane>
-            <Text fontWeight='bold'>56F</Text>
+            <Text fontWeight='bold'>{forecast.temperature} {forecast.temperatureUnit}</Text>
          </Pane>
       </Card>
    );
 }
 
+const fetch_params = {
+   headers: {
+      'User-Agent': '(cs361.jwevans.dev, jacob@jwevans.dev)',
+   },
+};
+
 export default function WeatherCard({
    location,
-   units
-}:{
-   location: Location,
-   units: UnitSystem
+   units,
+}: {
+   location: Location;
+   units: UnitSystem;
 }) {
+   const [data, setData] = useState<'loading' | any>('loading');
+   const [isLoading, setLoading] = useState(true);
+
+   useEffect(() => {
+      fetch(
+         `https://api.weather.gov/points/${location.lat},${location.long}`,
+         fetch_params
+      )
+         .then((res) => {
+            return res.json();
+         })
+         .then((js) => {
+            return fetch(
+               `https://api.weather.gov/gridpoints/${js.properties.cwa}/${
+                  js.properties.gridX
+               },${js.properties.gridY}/forecast/hourly?units=${
+                  units === 'metric' ? 'si' : 'us'
+               }`,
+               fetch_params
+            );
+         })
+         .then((res) => res.json())
+         .then((forecast) => {
+            console.log(forecast);
+            setData(forecast.properties);
+            setLoading(false);
+         });
+   }, [units]);
+
+   if (isLoading) return <Text>Loading</Text>;
    return (
       <Card
          elevation={1}
@@ -52,7 +90,10 @@ export default function WeatherCard({
          <Pane display='flex'>
             <Pane width='50%' display='flex' alignItems='center'>
                <Pane margin={5}>
-                  <Text>56F</Text>
+                  <Text>
+                     {isLoading ? null : data.periods[0].temperature}{' '}
+                     {units === 'metric' ? 'C' : 'F'}
+                  </Text>
                </Pane>
                <Pane margin={5}>
                   <FontAwesomeIcon icon={faCloud} />
@@ -69,9 +110,11 @@ export default function WeatherCard({
          >
             <Heading is='h3'>Hourly Forecast</Heading>
             <Pane display='flex'>
-               <HourlyWeather />
-               <HourlyWeather />
-               <HourlyWeather />
+               {isLoading
+                  ? null
+                  : data.periods.map((period: object, idx: any) => {
+                       return <HourlyWeather forecast={period} key={idx} />;
+                    })}
             </Pane>
          </Pane>
       </Card>

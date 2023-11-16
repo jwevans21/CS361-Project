@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 
 import './index.css';
 
+import NoSSR from './components/NoSSR';
+
 export const metadata: Metadata = {
    title: '404 Weather',
    description: 'Weather App for CS361 - Group 404 Name Not Found',
@@ -14,7 +16,9 @@ export default function RootLayout({
 }) {
    return (
       <html lang='en'>
-         <body>{children}</body>
+         <body>
+            <NoSSR>{children}</NoSSR>
+         </body>
       </html>
    );
 }
