@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { useLocalStorage } from '@uidotdev/usehooks';
+import { useGeolocation, useLocalStorage } from '@uidotdev/usehooks';
 
 import {
    CogIcon,
@@ -38,11 +38,12 @@ function themeFromName(name: ThemeName): DefaultTheme {
 export default function Home() {
    ('use client');
    const [showSettings, setShowSettings] = useState(false);
+   const locationState = useGeolocation();
 
    if (typeof window === 'undefined') {
       return <></>;
    }
-   
+
    // Begin Saved State
    const [unitSystem, setUnitSystem] = useLocalStorage<UnitSystem>(
       'unitSystem',
@@ -101,6 +102,16 @@ export default function Home() {
                flexDirection='column'
                background='tint1'
             >
+               {!locationState.loading && !locationState.error && (
+                  <WeatherCard
+                     location={{
+                        lat: locationState.latitude as number,
+                        long: locationState.longitude as number,
+                        name: 'Current Location',
+                     }}
+                     units={unitSystem}
+                  />
+               )}
                {locations.map((location, idx) => {
                   return (
                      <WeatherCard
