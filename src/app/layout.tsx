@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 
+import '../../styles/globals.css';
+
 import './index.css';
 
 import NoSSR from './components/NoSSR';

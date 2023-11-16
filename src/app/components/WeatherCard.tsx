@@ -3,31 +3,33 @@ import { useState, useEffect } from 'react';
 import { faCloud } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { Card, Pane, Heading, Text } from 'evergreen-ui';
-
 import type { Location, UnitSystem } from '../types.d.ts';
 
 function HourlyWeather({ forecast }: { forecast: any }) {
    return (
-      <Card
-         elevation={1}
-         margin={10}
-         padding={10}
-         display='flex'
-         flexDirection='column'
-         alignItems='center'
-         justifyContent='space-between'
-      >
-         <Heading is='h4' size={400}>
-            {(new Date(forecast.startTime)).toLocaleTimeString()}
-         </Heading>
-         <Pane margin={20}>
-            <FontAwesomeIcon icon={faCloud} />
-         </Pane>
-         <Pane>
-            <Text fontWeight='bold'>{forecast.temperature} {forecast.temperatureUnit}</Text>
-         </Pane>
-      </Card>
+      <div className='card m-4 bg-base-100 shadow-m'>
+         <div className='card-body items-center'>
+            <h4 className='card-title whitespace-nowrap text-center'>
+               {new Date(forecast.startTime).toLocaleTimeString(undefined, {
+                  hour: 'numeric',
+                  minute: '2-digit',
+               })}
+            </h4>
+            <p className='whitespace-nowrap text-center'>
+               {new Date(forecast.startTime).toLocaleString(undefined, {
+                  month: 'short',
+                  day: '2-digit',
+                  year: 'numeric',
+               })}
+            </p>
+            <div className='flex flex-col justify-center items-center text-center mt-4'>
+               <FontAwesomeIcon icon={faCloud} />
+               <p className='font-bold'>
+                  {forecast.temperature} {forecast.temperatureUnit}
+               </p>
+            </div>
+         </div>
+      </div>
    );
 }
 
@@ -73,50 +75,24 @@ export default function WeatherCard({
          });
    }, [units]);
 
-   if (isLoading) return <Text>Loading</Text>;
+   if (isLoading) return <div><p>Loading ...</p></div>;
+
    return (
-      <Card
-         elevation={1}
-         padding={16}
-         margin={24}
-         width='100%'
-         display='flex'
-         flexDirection='column'
-         justifyContent='space-around'
-      >
-         <Heading is='h2' size={800}>
-            {location.name}
-         </Heading>
-         <Pane display='flex'>
-            <Pane width='50%' display='flex' alignItems='center'>
-               <Pane margin={5}>
-                  <Text>
-                     {isLoading ? null : data.periods[0].temperature}{' '}
-                     {units === 'metric' ? 'C' : 'F'}
-                  </Text>
-               </Pane>
-               <Pane margin={5}>
-                  <FontAwesomeIcon icon={faCloud} />
-               </Pane>
-            </Pane>
-         </Pane>
-         <Pane
-            padding={10}
-            width='100%'
-            display='flex'
-            flexDirection='column'
-            alignItems='start'
-            justifyContent='center'
-         >
-            <Heading is='h3'>Hourly Forecast</Heading>
-            <Pane display='flex'>
+      <div className='card overflow-hidden m-4 bg-base-200 shadow-xl'>
+         <div className='card-body'>
+            <h2 className='card-title'>{location.name}</h2>
+            <p className='font-bold'>
+               {isLoading ? null : data.periods[0].temperature}{' '}
+               {units === 'metric' ? 'C' : 'F'}
+            </p>
+            <div className='flex overflow-x-auto'>
                {isLoading
                   ? null
                   : data.periods.map((period: object, idx: any) => {
                        return <HourlyWeather forecast={period} key={idx} />;
                     })}
-            </Pane>
-         </Pane>
-      </Card>
+            </div>
+         </div>
+      </div>
    );
 }
