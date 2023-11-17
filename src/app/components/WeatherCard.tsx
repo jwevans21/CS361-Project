@@ -23,7 +23,14 @@ function HourlyWeather({ forecast }: { forecast: any }) {
                })}
             </p>
             <div className='flex flex-col justify-center items-center text-center mt-4'>
-               <FontAwesomeIcon icon={faCloud} />
+               <div>
+                  <FontAwesomeIcon icon={faCloud} />
+                  <p>{forecast.shortForecast}</p>
+               </div>
+               <p className='text-xs'>
+                  {forecast.probabilityOfPrecipitation.value}
+                  {'%'}
+               </p>
                <p className='font-bold'>
                   {forecast.temperature} {forecast.temperatureUnit}
                </p>
@@ -75,16 +82,45 @@ export default function WeatherCard({
          });
    }, [units]);
 
-   if (isLoading) return <div><p>Loading ...</p></div>;
+   if (isLoading)
+      return (
+         <div>
+            <p>Loading ...</p>
+         </div>
+      );
 
    return (
       <div className='card overflow-hidden m-4 bg-base-200 shadow-xl'>
          <div className='card-body'>
-            <h2 className='card-title'>{location.name}</h2>
-            <p className='font-bold'>
-               {isLoading ? null : data.periods[0].temperature}{' '}
-               {units === 'metric' ? 'C' : 'F'}
-            </p>
+            <div className='w-full flex flex-row space-between items-center space-x-4'>
+               <div>
+                  <h2 className='card-title'>{location.name}</h2>
+                  <p className='font-bold'>
+                     {isLoading ? null : data.periods[0].temperature}{' '}
+                     {isLoading ? null : data.periods[0].temperatureUnit}
+                  </p>
+               </div>
+               <div className='grow flex flex-row space-x-4'>
+                  <div>{isLoading ? null : data.periods[0].shortForecast}</div>
+                  <div>
+                     {isLoading
+                        ? null
+                        : data.periods[0].probabilityOfPrecipitation.value}
+                     {'%'}
+                  </div>
+                  <div>
+                     {isLoading ? null : data.periods[0].windSpeed}{' '}
+                     {isLoading ? null : data.periods[0].windDirection}
+                  </div>
+                  <div>
+                     {isLoading
+                        ? null
+                        : data.periods[0].relativeHumidity.value}
+                     {'%'}
+                  </div>
+               </div>
+            </div>
+
             <div className='flex overflow-x-auto'>
                {isLoading
                   ? null
