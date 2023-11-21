@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 
+import '../../styles/globals.css';
+
 import './index.css';
+
+import NoSSR from './components/NoSSR';
 
 export const metadata: Metadata = {
    title: '404 Weather',
@@ -14,7 +18,9 @@ export default function RootLayout({
 }) {
    return (
       <html lang='en'>
-         <body>{children}</body>
+         <body>
+            <NoSSR>{children}</NoSSR>
+         </body>
       </html>
    );
 }

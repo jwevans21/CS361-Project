@@ -2,47 +2,24 @@
 
 import { useState } from 'react';
 
-import { useLocalStorage } from '@uidotdev/usehooks';
+import { useGeolocation, useLocalStorage } from '@uidotdev/usehooks';
 
-import {
-   CogIcon,
-   DefaultTheme,
-   Heading,
-   IconButton,
-   Pane,
-   SearchIcon,
-   SelectField,
-   SideSheet,
-   ThemeProvider,
-   defaultTheme,
-} from 'evergreen-ui';
-
-import lightTheme from './lib/lightTheme';
-import darkTheme from './lib/darkTheme';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGear, faSearch } from '@fortawesome/free-solid-svg-icons';
 
 import WeatherCard from './components/WeatherCard';
 
 import type { ThemeName, UnitSystem, Location } from './types.d.ts';
 
-function themeFromName(name: ThemeName): DefaultTheme {
-   switch (name) {
-      case 'default':
-         return lightTheme;
-      case 'dark':
-         return darkTheme;
-      default:
-         return defaultTheme;
-   }
-}
-
 export default function Home() {
    ('use client');
    const [showSettings, setShowSettings] = useState(false);
+   const locationState = useGeolocation();
 
    if (typeof window === 'undefined') {
       return <></>;
    }
-   
+
    // Begin Saved State
    const [unitSystem, setUnitSystem] = useLocalStorage<UnitSystem>(
       'unitSystem',
@@ -54,7 +31,7 @@ export default function Home() {
          if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
             return 'dark' as ThemeName;
          } else {
-            return 'default' as ThemeName;
+            return 'light' as ThemeName;
          }
       })()
    );
@@ -70,101 +47,113 @@ export default function Home() {
    );
    // End Saved Data
 
-   const theme = themeFromName(themeName);
-
    return (
-      <ThemeProvider value={theme}>
-         <Pane width='100%' height='100%' background='bg_default'>
-            <Pane
-               background='bg_inset'
-               padding={16}
-               display='flex'
-               alignItems='center'
-               justifyContent='space-between'
-            >
-               <Heading is='h1' size={900}>
-                  404 Weather
-               </Heading>
-               <Pane>
-                  <IconButton margin={5} icon={SearchIcon} />
-                  <IconButton
-                     onClick={() => setShowSettings(true)}
-                     margin={5}
-                     icon={CogIcon}
-                  />
-               </Pane>
-            </Pane>
-            <Pane
-               padding={16}
-               display='flex'
-               alignItems='center'
-               flexDirection='column'
-               background='tint1'
-            >
-               {locations.map((location, idx) => {
-                  return (
+      <div className='drawer drawer-end w-full h-full' data-theme={themeName}>
+         <input
+            id='my-drawer-4'
+            type='checkbox'
+            className='drawer-toggle'
+            checked={showSettings}
+            onClick={() => setShowSettings(false)}
+         />
+         <div className='drawer-content overflow-auto'>
+            <div>
+               {/* Navigation Bar */}
+               <div className='navbar bg-base-100'>
+                  <div className='flex-1'>
+                     <a className='btn btn-ghost text-xl'>404 Weather</a>
+                  </div>
+                  <div className='flex-none space-x-2'>
+                     <button className='btn btn-neutral'>
+                        <FontAwesomeIcon icon={faSearch} />
+                     </button>
+                     <button
+                        className='btn btn-neutral'
+                        onClick={() => setShowSettings(true)}
+                     >
+                        <FontAwesomeIcon icon={faGear} />
+                     </button>
+                  </div>
+               </div>
+               <div className='flex flex-col w-full h-full'>
+                  {/* Main Body */}
+                  {!locationState.loading && !locationState.error && (
                      <WeatherCard
-                        key={idx}
-                        location={location}
+                        location={{
+                           lat: locationState.latitude as number,
+                           long: locationState.longitude as number,
+                           name: 'Current Location',
+                        }}
                         units={unitSystem}
                      />
-                  );
-               })}
-            </Pane>
-            <SideSheet
-               isShown={showSettings}
-               onCloseComplete={() => setShowSettings(false)}
-               preventBodyScrolling
-               containerProps={{
-                  backgroundColor: '',
-                  background: 'bg_default',
-               }}
-            >
-               <Pane
-                  display='flex'
-                  flexDirection='column'
-                  alignItems='center'
-                  justifyContent='center'
-                  padding={20}
-                  margin={40}
-               >
-                  <SelectField
-                     label='Select units for weather'
-                     value={unitSystem}
-                     onChange={(e) =>
-                        setUnitSystem(e.target.value as UnitSystem)
-                     }
-                     padding={8}
-                     appearance=''
-                  >
-                     <option
-                        value='imperial'
-                        selected={unitSystem === 'imperial'}
+                  )}
+                  {locations.map((location, idx) => {
+                     return (
+                        <WeatherCard
+                           key={idx}
+                           location={location}
+                           units={unitSystem}
+                        />
+                     );
+                  })}
+               </div>
+            </div>
+         </div>
+         <div className='drawer-side'>
+            <label
+               htmlFor='my-drawer-4'
+               aria-label='close sidebar'
+               className='drawer-overlay'
+            ></label>
+            <ul className='menu p-4 w-80 min-h-full bg-base-200 text-base-content'>
+               <li className='w-full'>
+                  <div className='form-control w-full max-w-xs'>
+                     <label className='label'>
+                        <span className='label-text'>Units</span>
+                     </label>
+                     <select
+                        className='select select-bordered'
+                        onChange={(e) =>
+                           setUnitSystem(e.target.value as UnitSystem)
+                        }
                      >
-                        Imperial
-                     </option>
-                     <option value='metric' selected={unitSystem === 'metric'}>
-                        Metric
-                     </option>
-                  </SelectField>
-
-                  <SelectField
-                     label='Select theme for display'
-                     value={themeName}
-                     onChange={(e) => setThemeName(e.target.value as ThemeName)}
-                     padding={8}
-                     appearance=''
-                  >
-                     <option value='default' selected={themeName === 'default'}>
-                        Default
-                     </option>
-                     <option value='dark' selected={themeName === 'dark'}>
-                        Dark
-                     </option>
-                  </SelectField>
-               </Pane>
-            </SideSheet>
-         </Pane>
-      </ThemeProvider>
+                        <option
+                           value='imperial'
+                           selected={unitSystem === 'imperial'}
+                        >
+                           Imperial
+                        </option>
+                        <option
+                           value='metric'
+                           selected={unitSystem === 'metric'}
+                        >
+                           Metric
+                        </option>
+                     </select>
+                  </div>
+               </li>
+               <li className='w-full'>
+                  <div className='form-control w-full max-w-xs'>
+                     <label className='label'>
+                        <span className='label-text'>Theme</span>
+                     </label>
+                     <select
+                        className='select select-bordered'
+                        onChange={(e) =>
+                           setThemeName(e.target.value as ThemeName)
+                        }
+                     >
+                        <option value='light' selected={themeName === 'light'}>
+                           Light
+                        </option>
+                        <option value='dark' selected={themeName === 'dark'}>
+                           Dark
+                        </option>
+                     </select>
+                  </div>
+               </li>
+            </ul>
+         </div>
+      </div>
    );
 }

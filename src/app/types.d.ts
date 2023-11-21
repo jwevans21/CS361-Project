@@ -1,5 +1,5 @@
 export type UnitSystem = 'imperial' | 'metric';
-export type ThemeName = 'default' | 'dark';
+export type ThemeName = 'light' | 'dark';
 
 export type Location = {
    name: string;
