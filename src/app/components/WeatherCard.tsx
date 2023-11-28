@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Dispatch, SetStateAction } from 'react';
 
 import { faCloud } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import type { Location, UnitSystem } from '../types.d.ts';
+import LoadingCard from './LoadingCard';
 
 function HourlyWeather({ forecast }: { forecast: any }) {
    return (
@@ -49,12 +50,17 @@ const fetch_params = {
 export default function WeatherCard({
    location,
    units,
+   setLocations,
+   idx,
 }: {
    location: Location;
    units: UnitSystem;
+   setLocations: Dispatch<SetStateAction<Location[]>> | null;
+   idx: number;
 }) {
    const [data, setData] = useState<'loading' | any>('loading');
    const [isLoading, setLoading] = useState(true);
+   const [error, setError] = useState(false);
 
    useEffect(() => {
       fetch(
@@ -75,17 +81,34 @@ export default function WeatherCard({
             );
          })
          .then((res) => res.json())
+         .then((js) => {
+            if (typeof js.status !== 'undefined') {
+               throw new Error('Invalid Response');
+            }
+            return js;
+         })
          .then((forecast) => {
-            console.log(forecast);
             setData(forecast.properties);
+            setLoading(false);
+         })
+         .catch((err) => {
+            setError(true);
             setLoading(false);
          });
    }, [units]);
 
-   if (isLoading)
+   if (isLoading) return <LoadingCard />;
+   if (error)
       return (
-         <div>
-            <p>Loading ...</p>
+         <div className='card overflow-hidden m-4 bg-base-200 shadow-xl'>
+            <div className='card-body'>
+               <div className='w-full flex flex-row space-between items-center space-x-4'>
+                  <div>
+                     <h2 className='card-title'>{location.name}</h2>
+                  </div>
+                  <p>Error Loading Data</p>
+               </div>
+            </div>
          </div>
       );
 
@@ -100,7 +123,7 @@ export default function WeatherCard({
                      {isLoading ? null : data.periods[0].temperatureUnit}
                   </p>
                </div>
-               <div className='grow flex flex-row space-x-4'>
+               <div className='grow flex flex-row justify-between'>
                   <div>{isLoading ? null : data.periods[0].shortForecast}</div>
                   <div>
                      {isLoading
@@ -113,11 +136,28 @@ export default function WeatherCard({
                      {isLoading ? null : data.periods[0].windDirection}
                   </div>
                   <div>
-                     {isLoading
-                        ? null
-                        : data.periods[0].relativeHumidity.value}
+                     {isLoading ? null : data.periods[0].relativeHumidity.value}
                      {'%'}
                   </div>
+                  {setLocations != null ? (
+                     <button
+                        className='btn btn-error'
+                        onClick={() => {
+                           console.info('removing index: ', idx);
+                           setLocations((prev) => {
+                              let temp = new Array();
+                              prev.forEach((loc, i) => {
+                                 if (idx != i) {
+                                    temp.push(loc);
+                                 }
+                              });
+                              return temp;
+                           });
+                        }}
+                     >
+                        Remove
+                     </button>
+                  ) : null}
                </div>
             </div>
 
